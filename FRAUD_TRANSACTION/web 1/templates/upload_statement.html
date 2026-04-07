@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Statement | Fraud Watch</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #3b82f6;
+            --dark-color: #1e293b;
+            --text-color: #64748b;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --bg-color: #f8fafc;
+            --sidebar-width: 260px;
+            --gradient: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--dark-color);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar same as dashboard */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 30px 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-header h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .sidebar-menu {
+            padding: 10px 15px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 10px;
+            color: var(--text-color);
+            text-decoration: none;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .sidebar-item i {
+            font-size: 20px;
+            margin-right: 12px;
+        }
+
+        .sidebar-item:hover, .sidebar-item.active {
+            background: rgba(37, 99, 235, 0.05);
+            color: var(--primary-color);
+        }
+
+        .sidebar-item.active {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+        }
+
+        .upload-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header-section {
+            margin-bottom: 40px;
+        }
+
+        .header-section h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .upload-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .drop-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 15px;
+            padding: 60px 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: #f8fafc;
+        }
+
+        .drop-zone:hover, .drop-zone.active {
+            border-color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.02);
+        }
+
+        .drop-zone i {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .drop-zone h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .drop-zone p {
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .scan-btn {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .scan-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        /* Scanning Animation */
+        .scanning-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 2000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scanner-line {
+            width: 300px;
+            height: 2px;
+            background: var(--primary-color);
+            position: relative;
+            box-shadow: 0 0 15px var(--primary-color);
+            animation: scan 2s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0%, 100% { top: -100px; }
+            50% { top: 100px; }
+        }
+
+        .scan-text {
+            margin-top: 40px;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* Results */
+        .result-card {
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Exact Match Result Card (v7) */
+        .result-container {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .result-card {
+            background: #fff;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .result-card.genuine {
+            background-color: #f0fff4;
+            border-color: #10b981;
+        }
+
+        .result-card.fraud {
+            background-color: #fff5f5;
+            border-color: #ef4444;
+        }
+
+        .result-icon {
+            font-size: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 45px;
+            width: 45px;
+            border-radius: 50%;
+        }
+
+        .result-card.genuine .result-icon { background: #10b981; color: white; }
+        .result-card.fraud .result-icon { background: #ef4444; color: white; }
+
+        .result-content {
+            flex-grow: 1;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .result-header h4 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .result-card.genuine h4 { color: #10b981; }
+        .result-card.fraud h4 { color: #ef4444; }
+
+        .status-badge {
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 6px;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .status-badge.secure { background: #10b981; }
+        .status-badge.high-risk { background: #ef4444; }
+
+        .result-content p {
+            margin: 0;
+            font-size: 13px;
+            color: #4a5568;
+        }
+
+        .result-content p strong {
+            color: #10b981;
+        }
+
+        .result-card.fraud p strong {
+            color: #ef4444;
+        }
+
+        .risk-section {
+            margin-top: 15px;
+        }
+
+        .risk-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #718096;
+            margin-bottom: 5px;
+        }
+
+        .risk-bar-container {
+            height: 10px;
+            background: #edf2f7;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .risk-bar {
+            height: 100%;
+            transition: width 1.5s cubic-bezier(0.1, 0, 0.2, 1);
+        }
+
+        .result-card.genuine .risk-bar { background: #10b981; }
+        .result-card.fraud .risk-bar { background: #ef4444; }
+
+        .result-card.genuine {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+        }
+
+        .result-icon {
+            font-size: 32px;
+        }
+
+        .result-details h4 {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .top-nav {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 30px;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--text-color);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger-color);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+
+        .notif-dropdown {
+            width: 350px;
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: none;
+            padding: 0;
+            z-index: 1050;
+        }
+
+        .notif-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+        }
+
+        .notif-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .notif-item:hover {
+            background-color: rgba(37, 99, 235, 0.02);
+        }
+
+        .notif-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0); }
+            25% { transform: rotate(15deg); }
+            75% { transform: rotate(-15deg); }
+        }
+        
+        .wiggle {
+            animation: wiggle 0.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show animate__animated animate__fadeIn" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                    <div class="d-flex align-items-center gap-2">
+                        {% if category == 'danger' %}<i class="bi bi-shield-slash-fill"></i>{% else %}<i class="bi bi-shield-check-fill"></i>{% endif %}
+                        <span>{{ message }}</span>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="bi bi-shield-check"></i> Fraud Watch</h3>
+        </div>
+        <nav class="sidebar-menu">
+            <a href="/dashboard" class="sidebar-item">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/transaction" class="sidebar-item">
+                <i class="bi bi-arrow-left-right"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="/upload_statement" class="sidebar-item active">
+                <i class="bi bi-file-earmark-arrow-up"></i>
+                <span>Upload Statement</span>
+            </a>
+            <a href="/logs" class="sidebar-item">
+                <i class="bi bi-journal-text"></i>
+                <span>View Logs</span>
+            </a>
+            <a href="/logout" class="sidebar-item">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-nav">
+            <div class="dropdown">
+                <button class="notification-btn" type="button" data-bs-toggle="dropdown" id="notifDropdown" aria-expanded="false">
+                    <i class="bi bi-bell"></i>
+                    {% if notif_count > 0 %}
+                    <span class="notification-badge">{{ notif_count }}</span>
+                    {% endif %}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end notif-dropdown" aria-labelledby="notifDropdown">
+                    <li class="notif-header">
+                        <span class="fw-bold">Notifications</span>
+                        <button class="btn btn-sm btn-link text-primary p-0" id="clearNotifs" style="font-size: 12px; text-decoration: none;">Clear All</button>
+                    </li>
+                    <div id="notifList">
+                        <!-- Populated by JS -->
+                        <li class="p-4 text-center text-muted">
+                            <i class="bi bi-bell-slash mb-2 d-inline-block" style="font-size: 24px;"></i>
+                            <p class="mb-0 small">Loading notifications...</p>
+                        </li>
+                    </div>
+                </ul>
+            </div>
+        </header>
+
+        <div class="upload-container">
+            <div class="header-section animate__animated animate__fadeInDown">
+                <h1>Statement Analysis</h1>
+                <p>Upload your bank statement (PDF/Image) to detect potential fraudulent activities or "black money" transfers.</p>
+            </div>
+
+            <div class="upload-card animate__animated animate__fadeInUp">
+                <form action="/upload_statement" method="post" enctype="multipart/form-data" id="upload-form">
+                    <div class="drop-zone" id="drop-zone">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                        <h3>Drop your statement here</h3>
+                        <p>or click to browse from your device</p>
+                        <p class="text-muted mt-2 small">Supported: PNG, JPG, PDF</p>
+                        <input type="file" name="file" id="file-input" accept="image/*,application/pdf">
+                        <p id="filename-display" class="mt-3 font-weight-bold color-primary"></p>
+                    </div>
+                    <button type="submit" class="scan-btn" id="submit-btn" disabled>
+                        <span>Launch Deep Fraud Analysis</span>
+                        <small style="display: block; font-size: 10px; opacity: 0.7;">(Scanning Binary Metadata & Header)</small>
+                    </button>
+                </form>
+
+                {% if result %}
+                <div class="result-container">
+                    <div class="result-card {% if result == 'fraud' %}fraud{% else %}genuine{% endif %} animate__animated animate__fadeInUp">
+                        <div class="result-icon">
+                            {% if result == 'fraud' %}
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            {% else %}
+                            <i class="bi bi-check-lg"></i>
+                            {% endif %}
+                        </div>
+                        <div class="result-content">
+                            <div class="result-header">
+                                <h4>Result: {% if result == 'fraud' %}FRAUD{% else %}GENUINE{% endif %}</h4>
+                                <span class="status-badge {% if result == 'fraud' %}high-risk{% else %}secure{% endif %}">
+                                    {% if result == 'fraud' %}HIGH RISK{% else %}SECURE{% endif %}
+                                </span>
+                            </div>
+                            <p>Analysis complete for: <strong>{{ filename }}</strong></p>
+                            <p style="margin-top: 5px; font-weight: 500;">{{ reason }}</p>
+                            
+                            <div class="risk-section">
+                                <div class="risk-label">
+                                    <span>Fraud Probability Score</span>
+                                    <strong>{{ risk_score }}%</strong>
+                                </div>
+                                <div class="risk-bar-container">
+                                    <div class="risk-bar" style="width: {{ risk_score }}%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="mt-5 text-center text-muted">
+                <p class="small"><i class="bi bi-shield-lock"></i> All uploads are processed using end-to-end encrypted AI algorithms.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scanning Overlay -->
+    <div class="scanning-overlay" id="scanning-overlay">
+        <div class="scanner-container">
+            <div class="scanner-line"></div>
+        </div>
+        <div class="scan-text">Analyzing Transactions...</div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const filenameDisplay = document.getElementById('filename-display');
+        const submitBtn = document.getElementById('submit-btn');
+        const uploadForm = document.getElementById('upload-form');
+        const scanningOverlay = document.getElementById('scanning-overlay');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('active');
+        });
+
+        ['dragleave', 'dragend'].forEach(type => {
+            dropZone.addEventListener(type, () => {
+                dropZone.classList.remove('active');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('active');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileName();
+            }
+        });
+
+        fileInput.addEventListener('change', updateFileName);
+
+        function updateFileName() {
+            if (fileInput.files.length) {
+                filenameDisplay.textContent = `Selected: ${fileInput.files[0].name}`;
+                submitBtn.disabled = false;
+            }
+        }
+
+        uploadForm.addEventListener('submit', (e) => {
+            scanningOverlay.style.display = 'flex';
+            // Let the form submit naturally after a small delay to show animation
+            setTimeout(() => {
+                // Actually we just let it submit, the browser will stop the animation when it navigates
+            }, 100);
+        });
+
+        // Dynamic Notifications Polling
+        async function updateNotificationBadge() {
+            try {
+                const response = await fetch('/api/notifications/unread');
+                const data = await response.json();
+                
+                const bellBtn = document.querySelector('.notification-btn');
+                const bellIcon = bellBtn.querySelector('i');
+                let badge = bellBtn.querySelector('.notification-badge');
+                
+                const currentCount = badge ? parseInt(badge.textContent) : 0;
+                const newCount = data.count;
+                
+                if (newCount > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'notification-badge';
+                        bellBtn.appendChild(badge);
+                    }
+                    badge.textContent = newCount;
+                    
+                    // Add wiggle if new notification arrives
+                    if (newCount > currentCount) {
+                        bellIcon.classList.add('wiggle');
+                        setTimeout(() => bellIcon.classList.remove('wiggle'), 3000);
+                    }
+                } else if (badge) {
+                    badge.remove();
+                }
+            } catch (err) {
+                console.error('Error polling notifications:', err);
+            }
+        }
+
+        // Load Detailed Notifications
+        async function loadNotifications() {
+            try {
+                const response = await fetch('/api/notifications/list');
+                const data = await response.json();
+                const notifList = document.getElementById('notifList');
+                
+                if (data.notifications.length === 0) {
+                    notifList.innerHTML = `
+                        <li class="p-4 text-center text-muted">
+                            <i class="bi bi-bell-slash mb-2 d-inline-block" style="font-size: 24px;"></i>
+                            <p class="mb-0 small">No new notifications</p>
+                        </li>`;
+                    return;
+                }
+                
+                notifList.innerHTML = data.notifications.map(n => `
+                    <li class="notif-item">
+                        <div class="d-flex gap-3 align-items-start">
+                            <div class="activity-icon warning mt-1" style="width: 32px; height: 32px; min-width: 32px; font-size: 14px; background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-shield-exclamation"></i>
+                            </div>
+                            <div>
+                                <div class="activity-title" style="font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 2px;">Fraud Alert Detected</div>
+                                <div class="activity-desc" style="font-size: 12px; color: #64748b;">${n.message}</div>
+                                <div class="activity-time mt-1" style="font-size: 10px; opacity: 0.6; color: #94a3b8;">${n.time}</div>
+                            </div>
+                        </div>
+                    </li>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading notifications:', err);
+            }
+        }
+
+        // Clear Notifications
+        document.getElementById('clearNotifs').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            try {
+                const response = await fetch('/api/notifications/clear', { method: 'POST' });
+                const data = await response.json();
+                if (data.success) {
+                    const badge = document.querySelector('.notification-badge');
+                    if (badge) badge.remove();
+                    document.querySelector('.notification-btn i').classList.remove('wiggle');
+                    loadNotifications();
+                }
+            } catch (err) {
+                console.error('Error clearing notifications:', err);
+            }
+        });
+
+        // Event listener for dropdown open
+        document.getElementById('notifDropdown').addEventListener('show.bs.dropdown', loadNotifications);
+
+        // Initialize and start polling
+        window.addEventListener('load', () => {
+            updateNotificationBadge();
+            setInterval(updateNotificationBadge, 5000); // Poll every 5 seconds
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction History</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary-color: #06b6d4;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --dark-color: #1f2937;
+            --gray-color: #6b7280;
+            --light-gray: #f3f4f6;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+            color: var(--dark-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 10px;
+            letter-spacing: -0.025em;
+        }
+
+        .header p {
+            color: var(--gray-color);
+            font-size: 1.1rem;
+        }
+
+        .history-card {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .history-card:hover {
+            box-shadow: var(--shadow-xl);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .history-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .history-title h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+
+        .history-note {
+            color: var(--gray-color);
+            margin: 4px 0;
+        }
+
+        .history-filter {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .history-filter a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .history-filter a:hover {
+            color: var(--primary-hover);
+        }
+
+        .history-filter a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .history-filter a:hover::after {
+            width: 100%;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 20px;
+        }
+
+        .transactions {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+        }
+
+        .transactions th {
+            background-color: var(--light-gray);
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .transactions td {
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.9rem;
+        }
+
+        .transactions tr {
+            transition: var(--transition);
+        }
+
+        .transactions tbody tr:hover {
+            background-color: rgba(79, 70, 229, 0.05);
+        }
+
+        .transactions tr:last-child td {
+            border-bottom: none;
+        }
+
+        .ml-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .ml-chip.safe,
+        .ml-chip.low {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .ml-chip.fraud,
+        .ml-chip.high {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .ml-chip.medium {
+            background-color: rgba(245, 158, 11, 0.12);
+            color: var(--warning-color);
+        }
+
+        .ml-chip.unknown {
+            background-color: rgba(107, 114, 128, 0.1);
+            color: var(--gray-color);
+        }
+
+        .risk-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .risk-bar {
+            width: 60px;
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .risk-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .risk-low { background-color: var(--success-color); }
+        .risk-medium { background-color: var(--warning-color); }
+        .risk-high { background-color: var(--danger-color); }
+
+        .view-btn {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .view-btn:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .load-wrapper {
+            text-align: center;
+            margin-top: 24px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray-color);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            color: #d1d5db;
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+            color: var(--dark-color);
+        }
+
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow-xl);
+            width: 90%;
+            max-width: 500px;
+            padding: 24px;
+            position: relative;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+
+        .close {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray-color);
+            background: none;
+            border: none;
+            transition: var(--transition);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close:hover {
+            color: var(--dark-color);
+            background-color: var(--light-gray);
+        }
+
+        .detail-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--gray-color);
+            width: 120px;
+            flex-shrink: 0;
+        }
+
+        .detail-value {
+            color: var(--dark-color);
+            word-break: break-word;
+        }
+
+        .modal-footer {
+            margin-top: 24px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--white);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--dark-color);
+            color: var(--white);
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 2000;
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-icon.total {
+            background-color: rgba(79, 70, 229, 0.1);
+            color: var(--primary-color);
+        }
+
+        .stat-icon.safe {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .stat-icon.fraud {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .stat-icon.pending {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+
+        .stat-info h3 {
+            font-size: 0.875rem;
+            color: var(--gray-color);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+
+        @media (max-width: 768px) {
+            .history-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .transactions th, .transactions td {
+                padding: 12px 8px;
+                font-size: 0.8rem;
+            }
+
+            .detail-row {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .detail-label {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Transaction Dashboard</h1>
+            <p>Monitor and analyze transaction data in real-time</p>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon total">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Total Transactions</h3>
+                    <div class="stat-value" id="totalTransactions">{{ transactions|length if transactions else 0 }}</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon safe">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Safe Transactions</h3>
+                    <div class="stat-value" id="safeTransactions">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon fraud">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Fraudulent</h3>
+                    <div class="stat-value" id="fraudTransactions">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon pending">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Pending</h3>
+                    <div class="stat-value" id="pendingTransactions">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="history-card">
+            <div class="history-header">
+                <div>
+                    <div class="history-title">
+                        <h2>📜 Incoming Transactions</h2>
+                    </div>
+                    <p class="history-note">Read-only feed of transfers submitted from Web&nbsp;1.</p>
+                    <div class="history-filter">
+                        <a href="/?all=1">Show all transactions</a>
+                        <span>·</span>
+                        <a href="/">Show recent</a>
+                    </div>
+                </div>
+                <button id="refreshList" class="btn btn-primary">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+
+            {% if transactions and transactions|length > 0 %}
+            <div class="table-wrapper">
+                <table class="transactions">
+                    <thead>
+                        <tr>
+                            <th>Sender</th>
+                            <th>Receiver</th>
+                            <th>Amount</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Risk</th>
+                            <th>ML Verdict</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="txBody">
+                    {% for t in transactions %}
+                        <tr>
+                            <td>{{ t.sender }}</td>
+                            <td>{{ t.receiver }}</td>
+                            <td>${{ t.amount }}</td>
+                            <td>{{ t.timestamp }}</td>
+                            <td>{{ t.status }}</td>
+                            <td>
+                                {% if t.risk is not none %}
+                                    <div class="risk-indicator">
+                                        <div class="risk-bar">
+                                            <div class="risk-fill {% if t.risk < 50 %}risk-low{% elif t.risk < 85 %}risk-medium{% else %}risk-high{% endif %}" style="width: {{ t.risk }}%"></div>
+                                        </div>
+                                        <span>{{ t.risk }}%</span>
+                                    </div>
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="ml-chip {{ 'high' if t.ml_label == 'HIGH' else 'medium' if t.ml_label == 'MEDIUM' else 'low' if t.ml_label == 'LOW' else 'unknown' }}">{{ t.ml_label }}</span>
+                            </td>
+                            <td>
+                                <button class="view-btn" data-sender="{{ t.sender }}" data-receiver="{{ t.receiver }}" data-amount="{{ t.amount }}" data-time="{{ t.timestamp }}" data-ip="{{ t.ip }}" data-status="{{ t.status }}" data-risk="{% if t.risk is not none %}{{ t.risk }}%{% else %}N/A{% endif %}" data-ml="{{ t.ml_label }}">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="load-wrapper">
+                <button id="loadMore" class="btn btn-secondary">
+                    <i class="fas fa-arrow-down"></i> Load more
+                </button>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>No transactions yet</h3>
+                <p>Transactions will appear here once they are submitted from Web 1.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Transaction Detail Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Transaction Details</h2>
+                <button id="detailClose" class="close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-row">
+                    <div class="detail-label">Sender:</div>
+                    <div class="detail-value" id="dSender"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Receiver:</div>
+                    <div class="detail-value" id="dReceiver"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Amount:</div>
+                    <div class="detail-value" id="dAmount"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">IP Address:</div>
+                    <div class="detail-value" id="dIP"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Time:</div>
+                    <div class="detail-value" id="dTime"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Status:</div>
+                    <div class="detail-value" id="dStatus"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Risk Score:</div>
+                    <div class="detail-value" id="dRisk"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">ML Verdict:</div>
+                    <div class="detail-value" id="dMl"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="document.getElementById('detailModal').style.display='none'">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Action completed successfully</span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            // Update stats
+            updateTransactionStats();
+
+            const formatRisk = (value) => {
+                if (value === null || value === undefined || value === 'N/A') {
+                    return 'N/A';
+                }
+                const num = Number(value);
+                return Number.isFinite(num) ? `${num}%` : 'N/A';
+            };
+
+            const formatMlLabel = (value) => {
+                if (!value) return 'UNKNOWN';
+                return value.toUpperCase();
+            };
+
+            // Refresh button
+            const refreshBtn = document.getElementById('refreshList');
+            if(refreshBtn){
+                refreshBtn.addEventListener('click', function(){
+                    // Add spinning animation to the icon
+                    const icon = this.querySelector('i');
+                    icon.classList.add('fa-spin');
+                    
+                    // Simulate refresh delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                });
+            }
+
+            // Load more functionality
+            let offset = {{ transactions|length if transactions else 0 }};
+            const limit = 50;
+            const loadBtn = document.getElementById('loadMore');
+            const txBody = document.getElementById('txBody');
+
+            if(loadBtn && txBody){
+                loadBtn.addEventListener('click', function(){
+                    loadBtn.disabled = true;
+                    loadBtn.innerHTML = '<span class="loading-spinner"></span> Loading...';
+                    
+                    fetch(`/transactions?offset=${offset}&limit=${limit}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if(!data || data.length === 0){
+                                loadBtn.textContent = 'No more transactions';
+                                showToast('No more transactions to load');
+                                return;
+                            }
+                            
+                            data.forEach(t => {
+                                const risk = formatRisk(t.risk);
+                                const ml = formatMlLabel(t.ml_label);
+                                const chipClass = ml === 'HIGH' ? 'high' : ml === 'MEDIUM' ? 'medium' : ml === 'LOW' ? 'low' : 'unknown';
+                                const riskClass = t.risk < 50 ? 'risk-low' : t.risk < 85 ? 'risk-medium' : 'risk-high';
+                                
+                                const tr = document.createElement('tr');
+                                tr.style.opacity = '0';
+                                tr.innerHTML = `
+                                    <td>${t.sender}</td>
+                                    <td>${t.receiver}</td>
+                                    <td>$${t.amount}</td>
+                                    <td>${t.timestamp}</td>
+                                    <td>${t.status}</td>
+                                    <td>
+                                        <div class="risk-indicator">
+                                            <div class="risk-bar">
+                                                <div class="risk-fill ${riskClass}" style="width: ${t.risk}%"></div>
+                                            </div>
+                                            <span>${risk}</span>
+                                        </div>
+                                    </td>
+                                    <td><span class="ml-chip ${chipClass}">${ml}</span></td>
+                                    <td>
+                                        <button class="view-btn" data-sender="${t.sender}" data-receiver="${t.receiver}" data-amount="${t.amount}" data-time="${t.timestamp}" data-ip="${t.ip}" data-status="${t.status}" data-risk="${risk}" data-ml="${ml}">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </td>
+                                `;
+                                txBody.appendChild(tr);
+                                
+                                // Animate new rows
+                                setTimeout(() => {
+                                    tr.style.transition = 'opacity 0.5s ease';
+                                    tr.style.opacity = '1';
+                                }, 50);
+                            });
+                            
+                            offset += data.length;
+                            loadBtn.disabled = false;
+                            loadBtn.innerHTML = '<i class="fas fa-arrow-down"></i> Load more';
+                            updateTransactionStats();
+                            showToast(`Loaded ${data.length} more transactions`);
+                        })
+                        .catch(() => { 
+                            loadBtn.disabled = false;
+                            loadBtn.innerHTML = '<i class="fas fa-arrow-down"></i> Load more';
+                            showToast('Failed to load more transactions', 'error');
+                        });
+                });
+            }
+
+            // View button functionality
+            document.addEventListener('click', function(e){
+                if(e.target && (e.target.classList.contains('view-btn') || e.target.closest('.view-btn'))){
+                    const btn = e.target.classList.contains('view-btn') ? e.target : e.target.closest('.view-btn');
+                    
+                    document.getElementById('dSender').textContent = btn.dataset.sender || '';
+                    document.getElementById('dReceiver').textContent = btn.dataset.receiver || '';
+                    document.getElementById('dAmount').textContent = '$' + (btn.dataset.amount || '');
+                    document.getElementById('dIP').textContent = btn.dataset.ip || '';
+                    document.getElementById('dTime').textContent = btn.dataset.time || '';
+                    document.getElementById('dStatus').textContent = btn.dataset.status || '';
+                    document.getElementById('dRisk').textContent = btn.dataset.risk || '';
+                    
+                    const mlValue = btn.dataset.ml || '';
+                    const mlElement = document.getElementById('dMl');
+                    mlElement.textContent = mlValue;
+                    
+                    // Apply styling to ML verdict
+                    mlElement.className = '';
+                    if (mlValue === 'HIGH') {
+                        mlElement.style.color = 'var(--danger-color)';
+                    } else if (mlValue === 'MEDIUM') {
+                        mlElement.style.color = 'var(--warning-color)';
+                    } else if (mlValue === 'LOW') {
+                        mlElement.style.color = 'var(--success-color)';
+                    } else {
+                        mlElement.style.color = 'var(--gray-color)';
+                    }
+                    
+                    const modal = document.getElementById('detailModal');
+                    modal.style.display = 'flex';
+                }
+            });
+
+            // Modal close functionality
+            const detailClose = document.getElementById('detailClose');
+            if(detailClose){
+                detailClose.onclick = function(){ 
+                    document.getElementById('detailModal').style.display='none'; 
+                };
+            }
+            
+            window.addEventListener('click', function(e){ 
+                const dm = document.getElementById('detailModal'); 
+                if(e.target == dm) dm.style.display='none'; 
+            });
+
+            // Toast notification function
+            function showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                const toastMessage = document.getElementById('toastMessage');
+                const icon = toast.querySelector('i');
+                
+                // Update icon based on type
+                icon.className = type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
+                
+                // Update message
+                toastMessage.textContent = message;
+                
+                // Show toast
+                toast.classList.add('show');
+                
+                // Hide after 3 seconds
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+
+            // Update transaction statistics
+            function updateTransactionStats() {
+                const rows = document.querySelectorAll('#txBody tr');
+                let safeCount = 0;
+                let fraudCount = 0;
+                let pendingCount = 0;
+                
+                rows.forEach(row => {
+                    const mlChip = row.querySelector('.ml-chip');
+                    const statusCell = row.cells[4]; // Status column
+                    
+                    if (mlChip) {
+                        if (mlChip.classList.contains('low')) safeCount++;
+                        else if (mlChip.classList.contains('high')) fraudCount++;
+                    }
+                    
+                    if (statusCell && statusCell.textContent.trim() === 'Pending') {
+                        pendingCount++;
+                    }
+                });
+                
+                // Update the stats with animation
+                animateValue('totalTransactions', 0, rows.length, 1000);
+                animateValue('safeTransactions', 0, safeCount, 1000);
+                animateValue('fraudTransactions', 0, fraudCount, 1000);
+                animateValue('pendingTransactions', 0, pendingCount, 1000);
+            }
+
+            // Animate number counting
+            function animateValue(id, start, end, duration) {
+                const obj = document.getElementById(id);
+                if (!obj) return;
+                
+                const range = end - start;
+                const minTimer = 50;
+                let stepTime = Math.abs(Math.floor(duration / range));
+                stepTime = Math.max(stepTime, minTimer);
+                const startTime = new Date().getTime();
+                const endTime = startTime + duration;
+                
+                function run() {
+                    const now = new Date().getTime();
+                    const remaining = Math.max((endTime - now) / duration, 0);
+                    const value = Math.round(end - (remaining * range));
+                    obj.textContent = value;
+                    
+                    if (value !== end) {
+                        requestAnimationFrame(run);
+                    }
+                }
+                
+                requestAnimationFrame(run);
+            }
+        });
+    </script>
+</body>
+</html>
