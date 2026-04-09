@@ -1,2 +1,2 @@
-flask
+-r FRAUD_TRANSACTION/requirements.txt
 gunicorn
